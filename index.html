@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Refatorados · Gênesis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #07080f;
+      --bg2:       #0e0f1c;
+      --bg3:       #14162b;
+      --gold:      #d4a843;
+      --gold2:     #f0c060;
+      --gold-dim:  #8a6c28;
+      --text:      #e8e4d8;
+      --text-muted:#8a8580;
+      --border:    #1e2040;
+      --radius:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .stars {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 30%, rgba(255,255,255,.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 75%, rgba(255,255,255,.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 90%, rgba(255,255,255,.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 45%, rgba(255,255,255,.2) 0%, transparent 100%);
+    }
+
+    .page { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+
+    header { text-align: center; padding: 48px 0 40px; }
+    .badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); border: 1px solid var(--gold-dim);
+      border-radius: 100px; padding: 4px 16px; margin-bottom: 24px;
+    }
+    header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2.4rem, 8vw, 3.8rem);
+      font-weight: 900; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--gold2) 0%, var(--gold) 50%, #b8860b 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1;
+    }
+    .subtitle { margin-top: 12px; font-size: 15px; color: var(--text-muted); font-weight: 400; letter-spacing: .5px; }
+    .divider { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px auto 0; }
+
+    .status-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px 32px; text-align: center; margin-bottom: 32px;
+    }
+    .status-card .icon { font-size: 3rem; margin-bottom: 16px; }
+    .status-card h2 { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 10px; }
+    .status-card p { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+
+    .today-card {
+      position: relative;
+      background: linear-gradient(135deg, #12142a 0%, #1a1030 100%);
+      border: 1px solid var(--gold-dim);
+      border-radius: var(--radius); padding: 40px 32px; margin-bottom: 32px; overflow: hidden;
+    }
+    .today-card::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px; width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(212,168,67,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .today-label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .today-chapter-number {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(4rem, 15vw, 7rem); font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .today-chapter-label { font-size: 13px; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; margin-bottom: 8px; }
+    .today-chapter-title { font-size: 1.25rem; font-weight: 600; color: var(--text); margin-bottom: 28px; }
+    .presenters-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+    .presenters { display: flex; gap: 12px; flex-wrap: wrap; }
+    .presenter-chip {
+      background: linear-gradient(135deg, rgba(212,168,67,.18), rgba(212,168,67,.08));
+      border: 1px solid rgba(212,168,67,.35);
+      border-radius: 100px; padding: 10px 22px;
+      font-size: 15px; font-weight: 600; color: var(--gold2);
+    }
+
+    .progress-section { margin-bottom: 32px; }
+    .progress-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .progress-title { font-size: 13px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .progress-count { font-size: 13px; font-weight: 600; color: var(--gold); }
+    .progress-bar { height: 6px; background: var(--bg3); border-radius: 100px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold2)); border-radius: 100px; }
+
+    .section-title { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold); letter-spacing: 1px; margin-bottom: 16px; }
+    .upcoming-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .upcoming-item {
+      display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 20px; transition: border-color .2s;
+    }
+    .upcoming-item:hover { border-color: var(--gold-dim); }
+    .upcoming-item.done { opacity: .4; }
+    .upcoming-num { font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700; color: var(--gold); text-align: center; }
+    .upcoming-info { min-width: 0; }
+    .upcoming-date { font-size: 11px; color: var(--text-muted); letter-spacing: .5px; margin-bottom: 2px; }
+    .upcoming-chapter-title { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upcoming-names { font-size: 12px; color: var(--gold); font-weight: 500; text-align: right; white-space: nowrap; }
+
+    .schedule-toggle {
+      background: none; border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text-muted); font-size: 14px; font-weight: 500; cursor: pointer;
+      width: 100%; padding: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: border-color .2s, color .2s; font-family: inherit; margin-bottom: 16px;
+    }
+    .schedule-toggle:hover { border-color: var(--gold-dim); color: var(--text); }
+
+    .full-schedule { display: none; flex-direction: column; gap: 8px; }
+    .full-schedule.open { display: flex; }
+
+    .sched-item {
+      display: grid; grid-template-columns: 40px 24px 1fr auto; align-items: center; gap: 12px;
+      padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; transition: background .15s;
+    }
+    .sched-item:hover { background: var(--bg2); border-color: var(--border); }
+    .sched-item.today-row { background: rgba(212,168,67,.08); border-color: rgba(212,168,67,.25); }
+    .sched-item.done-row { opacity: .35; }
+    .sched-num { font-family: 'Cinzel', serif; font-size: .95rem; color: var(--gold); font-weight: 600; text-align: right; }
+    .sched-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); margin: auto; }
+    .sched-dot.done { background: var(--gold-dim); }
+    .sched-dot.current { background: var(--gold2); box-shadow: 0 0 6px var(--gold); }
+    .sched-info { min-width: 0; }
+    .sched-title { font-size: 13px; color: var(--text); }
+    .sched-date { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .sched-names { font-size: 12px; color: var(--gold); white-space: nowrap; font-weight: 500; }
+
+    footer {
+      text-align: center; margin-top: 56px; padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--text-muted); line-height: 1.8;
+    }
+    footer strong { color: var(--text); }
+
+    @media (max-width: 480px) {
+      .today-card { padding: 28px 20px; }
+      .upcoming-item { grid-template-columns: 44px 1fr; }
+      .upcoming-names { display: none; }
+      .sched-item { grid-template-columns: 36px 20px 1fr auto; gap: 8px; }
+    }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .anim   { animation: fadeUp .5s ease both; }
+    .anim-1 { animation-delay: .1s; }
+    .anim-2 { animation-delay: .25s; }
+    .anim-3 { animation-delay: .4s; }
+    .anim-4 { animation-delay: .55s; }
+    .anim-5 { animation-delay: .65s; }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="page">
+    <header class="anim anim-1">
+      <div class="badge">Célula · 2026</div>
+      <h1>Refatorados</h1>
+      <p class="subtitle">Jornada pelo livro de Gênesis</p>
+      <div class="divider"></div>
+    </header>
+
+    <div id="app"></div>
+
+    <footer class="anim anim-5">
+      <p>📖 <strong>Refatorados</strong> — Célula</p>
+      <p>A escala é a mesma pra todo mundo. Toda leitura conta.</p>
+    </footer>
+  </div>
+
+  <script>
+    const MEMBERS = [
+      'Fabiano', 'Pedro Certo', 'Pedro', 'Vinicius Gardim',
+      'Bruna', 'Gabriel', 'Carlos', 'Lorran Santos'
+    ];
+
+    const CHAPTERS = [
+      'A Criação',
+      'O Jardim do Éden',
+      'A Queda',
+      'Caim e Abel',
+      'Genealogia de Adão a Noé',
+      'A Corrupção da Humanidade',
+      'O Dilúvio',
+      'O Fim do Dilúvio',
+      'A Aliança com Noé',
+      'As Nações',
+      'A Torre de Babel',
+      'O Chamado de Abrão',
+      'Abrão e Ló se Separam',
+      'Abrão Resgata Ló',
+      'A Aliança de Deus com Abrão',
+      'Hagar e Ismael',
+      'A Aliança da Circuncisão',
+      'Os Três Visitantes',
+      'Sodoma e Gomorra',
+      'Abraão e Abimeleque',
+      'O Nascimento de Isaque',
+      'Abraão é Testado',
+      'A Morte de Sara',
+      'Rebeca',
+      'A Morte de Abraão — Esaú e Jacó',
+      'Isaque e Abimeleque',
+      'Jacó Rouba a Bênção',
+      'A Escada de Jacó',
+      'Jacó e Raquel',
+      'Os Filhos de Jacó',
+      'Jacó Foge de Labão',
+      'Jacó Luta com Deus',
+      'Jacó Reencontra Esaú',
+      'Diná',
+      'Retorno a Betel',
+      'Descendentes de Esaú',
+      'José Vendido como Escravo',
+      'Judá e Tamar',
+      'José no Egito',
+      'Os Sonhos na Prisão',
+      'Os Sonhos do Faraó',
+      'Os Irmãos de José no Egito',
+      'Segunda Viagem ao Egito',
+      'A Copa de Prata',
+      'José se Revela aos Irmãos',
+      'Jacó vai ao Egito',
+      'Jacó diante do Faraó',
+      'Jacó Abençoa os Filhos de José',
+      'As Bênçãos de Jacó',
+      'A Morte de Jacó e José',
+    ];
+
+    const TOTAL = CHAPTERS.length; // 50
+    const START = new Date(2026, 4, 14); // 14 mai 2026
+
+    // Seeded PRNG — Mulberry32
+    function mulberry32(seed) {
+      return function () {
+        seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function shuffle(arr, seed) {
+      const rng = mulberry32(seed);
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // Rodízio justo: a cada 4 dias todos os 8 membros apresentaram uma vez
+    // round N usa seed SEED + N*997 → shuffle diferente a cada rodada
+    const SEED = 20260514;
+
+    function buildSchedule() {
+      const sched = [];
+      let round = 0;
+      while (sched.length < TOTAL) {
+        const order = shuffle(MEMBERS, SEED + round * 997);
+        for (let p = 0; p < 4 && sched.length < TOTAL; p++) {
+          sched.push([order[p * 2], order[p * 2 + 1]]);
+        }
+        round++;
+      }
+      return sched; // sched[i] = [name1, name2] para o capítulo i+1
+    }
+
+    const SCHEDULE = buildSchedule();
+
+    function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+    function dayOffset(d) { return Math.round((startOfDay(d) - startOfDay(START)) / 86400000); }
+    function addDays(base, n) { const d = new Date(base); d.setDate(d.getDate() + n); return d; }
+    function fmtDate(d) { return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }); }
+
+    const app = document.getElementById('app');
+    const today = new Date();
+    const offset = dayOffset(today);
+
+    if (offset < 0) {
+      const diff = -offset;
+      app.innerHTML = `
+        <div class="status-card anim anim-2">
+          <div class="icon">⏳</div>
+          <h2>A jornada começa em breve</h2>
+          <p>A escala começa em <strong>14 de maio de 2026</strong> — falta${diff === 1 ? '' : 'm'} <strong>${diff} dia${diff === 1 ? '' : 's'}</strong>.<br>Aproveita pra ler o prefácio 😄</p>
+        </div>`;
+    } else if (offset >= TOTAL) {
+      app.innerHTML = `
+        <div class="status-card anim anim-2">
+          <div class="icon">🎉</div>
+          <h2>Gênesis concluído!</h2>
+          <p>Vocês leram todos os <strong>${TOTAL} capítulos</strong> de Gênesis juntos. Parabéns, Refatorados!</p>
+        </div>`;
+    } else {
+      const [p1, p2] = SCHEDULE[offset];
+      const chapterNum = offset + 1;
+      const chapterTitle = CHAPTERS[offset];
+      const done = offset + 1;
+      const pct = Math.round((done / TOTAL) * 100);
+
+      const pastItems = [];
+      for (let i = Math.max(0, offset - 2); i < offset; i++) {
+        pastItems.push(i);
+      }
+      const nextItems = [];
+      for (let i = offset + 1; i <= offset + 6 && i < TOTAL; i++) {
+        nextItems.push(i);
+      }
+
+      function upcomingRow(idx, isDone) {
+        const [m1, m2] = SCHEDULE[idx];
+        return `
+          <div class="upcoming-item${isDone ? ' done' : ''}">
+            <div class="upcoming-num">${idx + 1}</div>
+            <div class="upcoming-info">
+              <div class="upcoming-date">${fmtDate(addDays(START, idx))}</div>
+              <div class="upcoming-chapter-title">${CHAPTERS[idx]}</div>
+            </div>
+            <div class="upcoming-names">${m1} & ${m2}</div>
+          </div>`;
+      }
+
+      function schedRow(idx) {
+        const [m1, m2] = SCHEDULE[idx];
+        const isCurrent = idx === offset;
+        const isDone = idx < offset;
+        return `
+          <div class="sched-item${isCurrent ? ' today-row' : ''}${isDone ? ' done-row' : ''}">
+            <div class="sched-num">${idx + 1}</div>
+            <div class="sched-dot${isCurrent ? ' current' : isDone ? ' done' : ''}"></div>
+            <div class="sched-info">
+              <div class="sched-title">${CHAPTERS[idx]}</div>
+              <div class="sched-date">${fmtDate(addDays(START, idx))}</div>
+            </div>
+            <div class="sched-names">${m1} & ${m2}</div>
+          </div>`;
+      }
+
+      app.innerHTML = `
+        <div class="today-card anim anim-2">
+          <div class="today-label">Hoje · ${fmtDate(today)}</div>
+          <div class="today-chapter-number">${chapterNum}</div>
+          <div class="today-chapter-label">Capítulo · Gênesis</div>
+          <div class="today-chapter-title">${chapterTitle}</div>
+          <div class="presenters-label">Quem traz o resumo hoje</div>
+          <div class="presenters">
+            <div class="presenter-chip">${p1}</div>
+            <div class="presenter-chip">${p2}</div>
+          </div>
+        </div>
+
+        <div class="progress-section anim anim-3">
+          <div class="progress-header">
+            <span class="progress-title">Progresso em Gênesis</span>
+            <span class="progress-count">${done} / ${TOTAL} capítulos</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+
+        <div class="anim anim-4">
+          <div class="section-title">Próximos capítulos</div>
+          <div class="upcoming-list">
+            ${pastItems.map(i => upcomingRow(i, true)).join('')}
+            ${nextItems.map(i => upcomingRow(i, false)).join('')}
+          </div>
+
+          <button class="schedule-toggle" id="toggleBtn" onclick="toggleSchedule()">
+            Ver escala completa &nbsp;▼
+          </button>
+          <div class="full-schedule" id="fullSchedule">
+            ${Array.from({ length: TOTAL }, (_, i) => schedRow(i)).join('')}
+          </div>
+        </div>`;
+    }
+
+    function toggleSchedule() {
+      const sched = document.getElementById('fullSchedule');
+      const btn = document.getElementById('toggleBtn');
+      const open = sched.classList.toggle('open');
+      btn.innerHTML = open ? 'Fechar escala &nbsp;▲' : 'Ver escala completa &nbsp;▼';
+    }
+  </script>
+</body>
+</html>
